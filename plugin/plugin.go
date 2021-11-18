@@ -6,14 +6,11 @@ package plugin
 
 import (
 	"context"
-	"errors"
 
 	"github.com/drone/drone-go/drone"
 	"github.com/drone/drone-go/plugin/converter"
 
 	"github.com/sirupsen/logrus"
-
-	// "github.com/meltwater/drone-convert-pathschanged/providers"
 )
 
 // New returns a new conversion plugin.
@@ -50,7 +47,6 @@ func (p *plugin) Convert(ctx context.Context, req *converter.Request) (*drone.Co
 		requestLogger.Infoln("selective path settings found")
 
 		var changedFiles []string
-		var extendedConfig string
 
 		switch p.provider {
 		case "github":
@@ -63,14 +59,14 @@ func (p *plugin) Convert(ctx context.Context, req *converter.Request) (*drone.Co
 			return nil, nil
 		}
 
-		extendedConfig, err = prepareExtendedConfig(config, p.token)
+		extendedConfig, err := prepareAdditionalConfigs(config, req.Repo, req.Build, p.token)
 		if err != nil {
 			requestLogger.Errorln("could not retrieve extended configs, skipping: ", err)
 			return nil, err
 		}
-		// TODO Remove it later!
-		println(config)
-		println(extendedConfig)
+
+		// merge all .drone.yml before processing paths changed
+		config = config + "\n" + extendedConfig
 
 		resources, err := parsePipelines(config, req.Build, req.Repo, changedFiles)
 		if err != nil {

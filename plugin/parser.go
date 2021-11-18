@@ -155,7 +155,6 @@ func parsePipelines(data string, build drone.Build, repo drone.Repo, changedFile
 	return resources, nil
 }
 
-
 // UnmarshalYAML supports implicit and optional include
 func (c *condition) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var out1 string

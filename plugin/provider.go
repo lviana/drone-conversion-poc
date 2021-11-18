@@ -59,22 +59,58 @@ func init() {
 	prometheus.MustRegister(GithubApiCount)
 }
 
-func prepareExtendedConfig(config string, token string) (string, error) {
+func GetConfigFile(filepath string, repo drone.Repo, build drone.Build, token string) ([]*resource, error) {
+	newctx := context.Background()
+	client := github.NewDefault()
+	client.Client = &http.Client{
+		Transport: &transport.BearerToken{
+			Token: token,
+		},
+	}
+
+	var result *scm.Response
+	var err error
+
+	content, _, err := client.Contents.Find(newctx, repo.Slug, filepath, build.After)
+	if err != nil {
+		return nil, err
+	}
+
+	GithubApiCount.Set(float64(result.Rate.Remaining))
+
+	// fmt.Println(content.Path, content.Data)
+	resources, err := unmarshal([]byte(content.Data))
+	if err != nil {
+		return nil, err
+	}
+
+	return resources, nil
+}
+
+func prepareAdditionalConfigs(config string, repo drone.Repo, build drone.Build, token string) (string, error) {
 	resources, err := unmarshal([]byte(config))
 	if err != nil {
 		return "", err
 	}
+
+	var appendedConfig []*resource
+
 	for _, resource := range resources {
 		switch resource.Kind {
 		case "monorepo":
-			for _, c := range resource.Includes {
-				// TODO replace
-				println(c)
-				// TODO Implement function
-				// GetConfigFiles(c, repo, build, token)
+			for _, f := range resource.Includes {
+				// TODO Validate execution
+				documents, err := GetConfigFile(f, repo, build, token)
+				if err != nil {
+					return "", err
+				}
+				for _, document := range documents {
+					appendedConfig = append(appendedConfig, document)
+				}
 			}
 		}
 	}
 
-	return "", nil
+	output, _ := marshal(appendedConfig)
+	return string(output), nil
 }
