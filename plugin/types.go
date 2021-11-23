@@ -11,7 +11,7 @@ type resource struct {
 	Steps    []*step                `yaml:"steps,omitempty"`
 	Trigger  conditions             `yaml:"trigger,omitempty"`
 	Attrs    map[string]interface{} `yaml:",inline"`
-	Includes []string               `yaml:"includes,omitempty"`
+	Projects []string               `yaml:"projects,omitempty"`
 }
 
 type step struct {

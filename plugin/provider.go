@@ -98,7 +98,7 @@ func prepareAdditionalConfigs(config string, repo drone.Repo, build drone.Build,
 	for _, resource := range resources {
 		switch resource.Kind {
 		case "monorepo":
-			for _, f := range resource.Includes {
+			for _, f := range resource.Projects {
 				// TODO Validate execution
 				documents, err := GetConfigFile(f, repo, build, token)
 				if err != nil {

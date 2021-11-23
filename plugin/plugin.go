@@ -66,7 +66,7 @@ func (p *plugin) Convert(ctx context.Context, req *converter.Request) (*drone.Co
 		}
 
 		// merge all .drone.yml before processing paths changed
-		config = config + "\n" + extendedConfig
+		config = config + extendedConfig
 
 		resources, err := parsePipelines(config, req.Build, req.Repo, changedFiles)
 		if err != nil {
